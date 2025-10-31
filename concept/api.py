@@ -3,7 +3,7 @@ from yolo_concept import ConceptLearner
 import uvicorn, io, cv2, numpy as np
 from PIL import Image
 
-app = FastAPI(title="YOLO-Concept API", version="0.1.0")
+app = FastAPI(title="Self-evolving API", version="0.1.0")
 bot = ConceptLearner()          # 全局单例
 
 @app.on_event("startup")
@@ -21,3 +21,4 @@ async def learn(file: UploadFile = File(...)):
 @app.get("/stats")
 async def stats():
     return bot.get_stats()      # 返回已学概念数、Neo4j 节点数等
+

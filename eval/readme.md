@@ -1,44 +1,36 @@
-\# 评估脚本使用说明
+Evaluation Script Usage Guide
+1. Prepare Ground Truth
 
+Write the ground truth file as data/ground_truth.json, with one record per line, for example:
 
+{"image": "path/to/img.jpg", "labels": ["cat", "remote"]}
 
-1\. 准备真值  
-
-&nbsp;  把真值写成 `data/ground\_truth.json`，每行一条：  
-
-&nbsp;  {"image": "path/to/img.jpg", "labels": \["cat", "remote"]}
-
-
-
-2\. 运行评估  
-
-&nbsp;  cd eval
-
-&nbsp;  python eval.py \\
-
-&nbsp;      --weights ../yolo\_concept\_sdk/yolo\_concept/data/weights/yolov8n.pt \\
-
-&nbsp;      --gt data/ground\_truth.json \\
-
-&nbsp;      --topk 5
-
-
-
-3\. 输出  
-
-&nbsp;  控制台打印：  
-
-&nbsp;  mAP@0.5: 0.823  
-
-&nbsp;  Top-5 Recall: 0.912  
-
-&nbsp;  并生成 `results/eval\_report.json`
-
-
-
-
-控制台会打印平均指标，并在 eval/results/ 下生成详细报告
+2. Run Evaluation
 cd eval
-python eval.py --weights ../yolo_concept_sdk/yolo_concept/data/weights/yolov8n.pt \
-               --gt data/ground_truth.json \
-               --topk 5
+
+python eval.py \
+  --weights ../yolo_concept_sdk/yolo_concept/data/weights/yolov8n.pt \
+  --gt data/ground_truth.json \
+  --topk 5
+
+3. Output
+
+The console will display:
+
+mAP@0.5: 0.823
+Top-5 Recall: 0.912
+
+
+and will generate a detailed report at:
+
+results/eval_report.json
+
+
+The console prints average performance metrics, and a full evaluation report is saved under eval/results/.
+Example command:
+
+cd eval
+python eval.py \
+  --weights ../yolo_concept_sdk/yolo_concept/data/weights/yolov8n.pt \
+  --gt data/ground_truth.json \
+  --topk 5

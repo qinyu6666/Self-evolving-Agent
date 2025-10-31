@@ -1,0 +1,17 @@
+[build-system]
+requires = ["setuptools>=61", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "yolo_concept"
+version = "0.1.0"
+description = "YOLO-driven continual concept learning toolkit"
+dependencies = [
+    "torch>=2.0",
+    "ultralytics>=8.0",
+    "faiss-cpu>=1.7.4",
+    "neo4j>=5.0",
+    "fastapi>=0.100",
+    "uvicorn[standard]>=0.20",
+    "opencv-python>=4.7",
+]

@@ -1,0 +1,3 @@
+{"image": "test_imgs/img1.jpg", "labels": ["cat", "remote"]}
+{"image": "test_imgs/img2.jpg", "labels": ["dog"]}
+{"image": "test_imgs/img3.jpg", "labels": ["mouse", "keyboard"]}

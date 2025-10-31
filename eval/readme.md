@@ -5,7 +5,7 @@
 Write the ground truth file as data/ground_truth.json, with one record per line, for example:
 ```
 {"image": "path/to/img.jpg", "labels": ["cat", "remote"]}
-'''
+```
 
 ## 2. Run Evaluation
 
@@ -40,4 +40,5 @@ python eval.py \
   --gt data/ground_truth.json \
   --topk 5
 ```
+
 

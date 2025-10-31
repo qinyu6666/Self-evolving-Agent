@@ -12,7 +12,7 @@ Visit our [Project Page](https://github.io/RAP-Project/) for more demostrations.
 
 自进化”智能体：YOLO 感知 → 向量记忆 → 知识图谱 → LoRA 增量学习
 
-1. ## 一键安装（Linux / macOS）
+## 一键安装（Linux / macOS）
 ```
 git clone https://github.com/yourname/Self-evolving-Agent.git
 cd Self-evolving-Agent
@@ -20,8 +20,7 @@ cd Self-evolving-Agent
 自动创建 venv、安装依赖、下载权重、启动 Neo4j
 bash scripts/run.sh
 ```
-
-2. ## DEMO
+## DEMO
 ```
 from yolo_concept import ConceptLearner
 
@@ -41,8 +40,27 @@ print(agent.query_concept("keyboard"))
 prompt = agent.generate_prompt("A cat sitting on a keyboard under RGB lighting")
 print(prompt)
 ```
+浏览器打开 http://localhost:8000/docs 可看交互式 API。
 
-
+## 自主训练（增量 LoRA）
+```
+# 把 20 张新概念图片放文件夹
+agent.continual_lora_train(
+    image_dir="new_concept/rgb_keyboard",
+    concept="rgb_keyboard",
+    epochs=5,
+    output_dir="lora_weights/rgb_keyboard"
+)
+# 权重自动保存，下次加载自动融合
+```
+## 离线评估
+```
+cd eval
+python eval.py \
+  --weights ../yolo_concept_sdk/yolo_concept/data/weights/yolov8n.pt \
+  --gt data/ground_truth.json \
+  --topk 5
+```
 
 ## BibTeX
 
@@ -51,4 +69,5 @@ print(prompt)
 
 }
 ```
+
 

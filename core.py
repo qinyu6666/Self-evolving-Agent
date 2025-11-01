@@ -87,6 +87,79 @@ class ConceptLearner:
                 self.kg.add_triplet(label, "has_example", key)  # 示例三元组
                 self.learner.update(img, label)                # 增量 LoRA
 
+    
+    # ---------- 内部工具 ----------
+    def _load_or_create_index(self):
+        if self.index_path.exists():
+            self.index = faiss.read_index(str(self.index_path))
+            with open(self.idmap_path) as f:
+                self.id2path = json.load(f)
+        else:
+            dim = self.clip.get_sentence_embedding_dimension()
+            self.index = faiss.IndexFlatIP(dim)   # 内积 = cosine（已归一化）
+            self.id2path = {}
+
+    def _save_index(self):
+        faiss.write_index(self.index, str(self.index_path))
+        with open(self.idmap_path, "w") as f:
+            json.dump(self.id2path, f, indent=2, ensure_ascii=False)
+
+    # ---------- 核心入口 ----------
+    def perceive(self, img_path: str | Path):
+        """
+        单张图片：检测 → 裁图 → 编码 → 双库写入
+        """
+        img_path = Path(img_path).resolve()
+        img_cv = cv2.imread(str(img_path))
+        assert img_cv is not None, f"cannot read {img_path}"
+
+        # 1. YOLO 检测
+        results = self.yolo(img_cv, verbose=False)   # list[Results]
+        if not results or len(results[0].boxes) == 0:
+            print(f"[perceive] no object found in {img_path.name}")
+            return
+
+        boxes = results[0].boxes.xyxy.cpu().numpy().astype(int)  # [N,4]
+        crops = [img_cv[y1:y2, x1:x2] for x1, y1, x2, y2 in boxes]
+
+        # 2. CLIP 编码（归一化）
+        embs = self.clip.encode(crops, convert_to_numpy=True, normalize_embeddings=True)
+
+        # 3. 写入 Faiss
+        next_id = self.index.ntotal
+        self.index.add(embs)
+
+        # 4. 写入 Neo4j（节点 + 关系）
+        with self.driver.session() as sess:
+            for i, (emb, crop) in enumerate(zip(embs, crops)):
+                node_id = str(next_id + i)
+                # 向量转 list 以便 JSON 序列化
+                sess.execute_write(self._create_node, node_id, img_path, emb.tolist())
+
+        # 5. 更新 id2path 并落盘
+        for i in range(len(crops)):
+            self.id2path[str(next_id + i)] = str(img_path)
+        self._save_index()
+        print(f"[perceive] {len(crops)} objects embedded & stored.")
+
+    # ---------- Neo4j 事务 ----------
+    @staticmethod
+    def _create_node(tx, node_id: str, img_path: Path, embedding: list):
+        tx.run(
+            """
+            MERGE (i:Image {path: $img_path})
+            CREATE (o:Object {id: $node_id, embedding: $emb})
+            CREATE (i)-[:CONTAINS]->(o)
+            """,
+            img_path=str(img_path),
+            node_id=node_id,
+            emb=embedding,
+        )
+
+    # ---------- 优雅关闭 ----------
+    def close(self):
+        self.driver.close()
+
     # -------------------- 单次学习接口（API 用） --------------------
     def learn_once(self, bgr_frame):
         """外部单次喂图，无需开摄像头"""
@@ -105,6 +178,15 @@ class ConceptLearner:
             "lora_steps":  self.learner.global_step,
         }
 
+    def learn_from_image(agent: ConceptLearner,
+                     img_path: str,
+                     concepts: list[str] | None = None):
+        agent.perceive(img_path)          # 自动检测 + 入库
+        if concepts:
+            agent.annotate(img_path, concepts)
+
+   
+    
 
 # 简易 CLI（可选）
 if __name__ == "__main__":

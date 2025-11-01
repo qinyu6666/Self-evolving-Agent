@@ -20,10 +20,10 @@ bash scripts/run.sh
 ```
 ## DEMO
 ```
-from yolo_concept import ConceptLearner
+from .core import ConceptLearner
 
 agent = ConceptLearner(
-    yolo_weights="yolo_concept_sdk/yolo_concept/data/weights/yolov11.pt",
+    yolo_weights="concept/data/weights/yolov11.pt",
     neo4j_uri="bolt://localhost:7687",
     neo4j_auth=("neo4j", "password")
 )
@@ -66,6 +66,7 @@ python eval.py \
 
 }
 ```
+
 
 
 
